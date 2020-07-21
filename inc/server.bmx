@@ -123,8 +123,8 @@ Type TZServer
 		Local packet:TZPacket
 		For Local c:TServerConnection = EachIn Self._connections
 			' FIX: Send as one huge bank, not one bank per packet
-			For packet = EachIn c._sendQueue.Reversed()
-				'WriteBank(packet.ToBank(True), c, 0, packet.Size())
+			For packet = EachIn c._sendQueue.Reversed() ' FIX: Once it's a queue we don't need to reverse this!
+				c._stream.WriteBytes(packet.ToBank(True), packet.Size())
 			Next
 			c._sendQueue.Clear()
 		Next
@@ -167,7 +167,6 @@ Type TZServer
 								If Not c._incomingPacket..
 									c._incomingPacket = New TZPacket(Byte(c.ReadByte()))
 								c._incomingPacketState:+1
-								'Print("Got ID - " + c.packetID)
 							EndIf
 						
 						' Second stage is getting destination
@@ -176,7 +175,6 @@ Type TZServer
 								c._incomingPacket.SetToClient(Short(c.ReadShort()))
 								c._incomingPacket.SetFromClient(c._sessionID)
 								c._incomingPacketState:+1
-								'Print("Got toClient - " + c.packetTo)
 							Else
 								Exit
 							EndIf
@@ -186,7 +184,6 @@ Type TZServer
 							If c.ReadAvail() >= 2 Then
 								c._incomingPacket.SetSize(Short(c.ReadShort()))
 								c._incomingPacketState:+1
-								'Print("Got Length - " + c.packetLen)
 							Else
 								Exit
 							EndIf
@@ -196,14 +193,10 @@ Type TZServer
 							' FIX: Instead of adding one byte we could add many
 							If Not c._incomingPacket.EOF() Then
 								c._incomingPacket.WriteByte(Byte(c.ReadByte()))
-								'c._packetBank.PokeByte(c._packetRecv, c.ReadByte())
-								'c._packetRecv:+1
-								'Print("Got Data " + c.packetRecv + "/" + (c.packetLen - zNetHeader))
 							EndIf
 							
 							' Packet is complete!
-							If c._incomingPacket.EOF() Then
-								'Print("Done")							
+							If c._incomingPacket.EOF() Then						
 								canReceiveMorePackets:-1
 								c._incomingPacketState = 0
 								
@@ -311,10 +304,6 @@ Type TServerConnection
 		CloseSocket(Self._socket)
 	EndMethod
 	
-	'Method Read:Int(buffer:Byte Ptr, count:Size_T)
-	'	Return Self._socket.Recv(buffer, count)
-	'EndMethod
-	
 	Method ReadByte:Byte()
 		Return Byte(Self._stream.ReadByte())
 	EndMethod
@@ -327,12 +316,36 @@ Type TServerConnection
 		Return Self._stream.ReadInt()
 	EndMethod
 	
+	Method ReadLong:Long()
+		Return Self._stream.ReadLong()
+	EndMethod
+	
+	Method ReadFloat:Float()
+		Return Self._stream.ReadFloat()
+	EndMethod
+	
+	Method ReadDouble:Double()
+		Return Self._stream.ReadDouble()
+	EndMethod
+	
 	Method WriteByte(value:Byte)
 		Self._stream.WriteByte(value)
 	EndMethod
 	
 	Method WriteShort(value:Short)
 		Self._stream.WriteShort(value)
+	EndMethod
+	
+	Method WriteInt(value:Int)
+		Self._stream.WriteInt(value)
+	EndMethod
+	
+	Method WriteLong(value:Long)
+		Self._stream.WriteLong(value)
+	EndMethod
+	
+	Method WriteDouble(value:Double)
+		Self._stream.WriteDouble(value)
 	EndMethod
 	
 	Method ReadAvail:Int()

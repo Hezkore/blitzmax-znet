@@ -1,7 +1,3 @@
-' Module hez.znet
-' 08/01/2020 21:06
-' 
-
 SuperStrict
 
 rem
