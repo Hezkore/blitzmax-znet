@@ -1,28 +1,23 @@
 SuperStrict
 
+Framework brl.standardio
 Import "../znet.bmx"
 
 'Packet definer
 Import "mypackets.bmx"
 
 Local client:TZClient = New TZClient(onNetPacket)
-If Not client.connect("127.0.0.1", 2472) Then
+
+
+If client.connect("127.0.0.1", 2472) Then
+	
+	While client.Connected()
+		client.update()
+	Wend
+Else
+	
 	Print("Error connecting to server")
-	End
 EndIf
-
-'Send packet
-'client.startpacket(zNet_ID_Test)
-'client.addstring("Hello! This is a test message over the interwebs!!")
-'client.addint(1234567890)
-'client.addshort(1337)
-'client.addbyte(128)
-'client.SendPacket()
-
-Graphics(320, 240, 0, 60, 2)
-While Not KeyDown(KEY_ESCAPE) And Not AppTerminate()
-	'client.update()
-Wend
 End
 
 ' Packet handler

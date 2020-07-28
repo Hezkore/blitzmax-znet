@@ -1,20 +1,19 @@
 SuperStrict
 
+Framework brl.standardio
 Import "../znet.bmx"
 
 ' Packet definer
 Import "mypackets.bmx"
 
-Global server:TZServer = New TZServer(onNetPacket)
-
-Graphics(320, 240, 0, 60, 2)
+Local server:TZServer = New TZServer(onNetPacket)
 
 ' Start the server
 ' Use port 2472
 ' Max 8 user connections
 If server.Start(2472, 8) Then
 	
-	While Not KeyDown(KEY_ESCAPE) And Not AppTerminate()
+	While server.Running()
 		server.Update()
 	Wend
 Else
@@ -25,8 +24,6 @@ End
 
 ' Our packet handler
 ' Any client message will pass through here
-' Return a packet to send it
-' Returning a packet with 'ToClient = 0' will send it to everyone
 Function onNetPacket:TZPacket(packet:TZPacket)
 	
 	Select packet.ID()
