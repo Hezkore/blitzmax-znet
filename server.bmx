@@ -6,18 +6,18 @@ Import brl.socketstream
 Import "packet.bmx"
 Import "connection.bmx"
 
-Type TZServer
+Type TNetworkServer
 	Field _clientsMax:Short
 	Field _clientCount:Short
 	
 	Field _noDelay:Byte = True
 	Field _port:Int
 	Field _socket:TSocket
-	Field _packetFuncPointer:TZPacket(packet:TZPacket)
-	Field _connections:TZConnection[]	'All our "players" are stored here
+	Field _packetFuncPointer:TNetworkPacket(packet:TNetworkPacket)
+	Field _connections:TNetworkConnection[]	'All our "players" are stored here
 	Field _hints:TAddrInfo
 	
-	Method New(func:TZPacket(packet:TZPacket))
+	Method New(func:TNetworkPacket(packet:TNetworkPacket))
 		
 		Self.SetPacketFunctionPointer(func)
 	EndMethod
@@ -30,7 +30,7 @@ Type TZServer
 		Return True'Self._socket.Connected()
 	EndMethod
 	
-	Method SetPacketFunctionPointer(func:TZPacket(packet:TZPacket))
+	Method SetPacketFunctionPointer(func:TNetworkPacket(packet:TNetworkPacket))
 		
 		Self._packetFuncPointer = func
 	EndMethod
@@ -46,7 +46,7 @@ Type TZServer
 		Self._port = port
 		
 		' Resize the connections array so that it fits all clients
-		Self._connections = New TZConnection[Self._clientsMax]
+		Self._connections = New TNetworkConnection[Self._clientsMax]
 		
 		' Prepare the socket
 		Self._socket = CreateTCPSocket()
@@ -74,13 +74,13 @@ Type TZServer
 	EndMethod
 	
 	Method _checkDisconnects()
-		For Local c:TZConnection = EachIn Self._connections
+		For Local c:TNetworkConnection = EachIn Self._connections
 			If Not c.Connected() Then
 				
 				If c._identified Then
 					' This was an identified connection
 					' Report its departure via a packet
-					Local leavePacket:TZPacket = New TZPacket(TZDefaultPackets.Left)
+					Local leavePacket:TNetworkPacket = New TNetworkPacket(TNetworkDefaultPackets.Left)
 					leavePacket.SetFromClient(c._sessionID)
 					Self._packetFuncPointer(leavePacket)
 				EndIf
@@ -91,7 +91,7 @@ Type TZServer
 		Next
 	EndMethod
 	
-	Method _checkNewConnections:TZConnection()
+	Method _checkNewConnections:TNetworkConnection()
 		
 		' Accept the new socket if there is one
 		Local accepted_socket:TSocket = SocketAccept(Self._socket)
@@ -102,7 +102,7 @@ Type TZServer
 			' We're good, continue
 			Self._clientCount:+1
 			
-			Local client:TZConnection = New TZConnection
+			Local client:TNetworkConnection = New TNetworkConnection
 			client._socket = accepted_socket
 			client._stream = CreateSocketStream(client._socket)
 			client._includeFromUser = True ' When sending data we can include from user data
@@ -125,12 +125,12 @@ Type TZServer
 	
 	Method _receiveAndSendData()
 		
-		For Local c:TZConnection = EachIn Self._connections
+		For Local c:TNetworkConnection = EachIn Self._connections
 			c.Update()
 		Next
 	EndMethod
 	
-	Method _internalPacket(packet:TZPacket)
+	Method _internalPacket(packet:TNetworkPacket)
 	EndMethod
 	
 	Method Update()
@@ -153,7 +153,7 @@ Type TZServer
 		Next
 	EndMethod
 	
-	Method GetConnection:TZConnection(sessionID:Short)
+	Method GetConnection:TNetworkConnection(sessionID:Short)
 		If Self._connections[sessionID] ..
 			Return(Self._connections[sessionID])
 	EndMethod

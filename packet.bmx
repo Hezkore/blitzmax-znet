@@ -4,7 +4,7 @@ Import brl.bank
 Import brl.stringbuilder
 
 ' Default internal packets
-Type TZDefaultPackets
+Type TNetworkDefaultPackets
 	Global Ping:Byte = 255
 	Global Left:Byte = 254
 	Global Join:Byte = 253
@@ -12,7 +12,7 @@ Type TZDefaultPackets
 EndType
 
 ' Packet type
-Type TZPacket
+Type TNetworkPacket
 	Global WriteBufferSize:Int = 32
 	
 	Field _id:Byte
@@ -25,7 +25,7 @@ Type TZPacket
 	
 	Method New(id:Byte)
 		Self._id = id
-		Self._data = CreateBank()
+		Self._data = CreateBank(Self.WriteBufferSize)
 	EndMethod
 	
 	Method ID:Byte()

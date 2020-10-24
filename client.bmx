@@ -6,22 +6,22 @@ Import brl.socketstream
 Import "packet.bmx"
 Import "connection.bmx"
 
-Type TZClient Extends TZConnection
+Type TNetworkClient Extends TNetworkConnection
 	
 	Field _port:Int
 	Field _address:String
 	
-	Field _packetFuncPointer:TZPacket(packet:TZPacket)
+	Field _packetFuncPointer:TNetworkPacket(packet:TNetworkPacket)
 	
 	Field _noDelay:Byte = True
 	
-	Method New(func:TZPacket(packet:TZPacket))
+	Method New(func:TNetworkPacket(packet:TNetworkPacket))
 		Super.New()
 		
 		Self.SetPacketFunctionPointer(func)
 	EndMethod
 	
-	Method SetPacketFunctionPointer(func:TZPacket(packet:TZPacket))
+	Method SetPacketFunctionPointer(func:TNetworkPacket(packet:TNetworkPacket))
 		
 		Self._packetFuncPointer = func
 	EndMethod
@@ -78,14 +78,14 @@ Type TZClient Extends TZConnection
 		Return True
 	EndMethod
 	
-	Method _internalPacket(packet:TZPacket)
+	Method _internalPacket(packet:TNetworkPacket)
 	EndMethod
 	
-	Method _triggerPacketFuncPointer(packet:TZPacket)
+	Method _triggerPacketFuncPointer(packet:TNetworkPacket)
 		
 		' Call the packet function pointer
 		' Anything returned will be sent
-		Local returnPacket:TZPacket = ..
+		Local returnPacket:TNetworkPacket = ..
 			Self._packetFuncPointer(packet)
 		
 		' Did we get a return packet?

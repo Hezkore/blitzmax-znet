@@ -1,5 +1,14 @@
-*.bmx/
+.bmx/
+.vscode/
+.DS_Store
 *.exe
+*.debug
+*.debug
+*.icns
+*.plist
+*.BLIde*
 *.blpo
-*.BLIdeUS
-*.BLIdeUS.*
+*.a
+*.i
+*.i2
+commands.html

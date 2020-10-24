@@ -1,11 +1,12 @@
 SuperStrict
 
+Import brl.standardio
 Import brl.objectlist
 Import brl.socketstream
 
 Import "packet.bmx"
 
-Type TZConnection
+Type TNetworkConnection
 	
 	Field _socket:TSocket
 	Field _stream:TSocketStream
@@ -18,9 +19,9 @@ Type TZConnection
 	
 	' For receiveing packets
 	Field _incomingPacketState:Byte
-	Field _incomingPacket:TZPacket
+	Field _incomingPacket:TNetworkPacket
 	
-	Field _packetFuncPointer:TZPacket(packet:TZPacket)
+	Field _packetFuncPointer:TNetworkPacket(packet:TNetworkPacket)
 	
 	' For sending packets
 	Field _sendQueue:TObjectList ' FIX: Make TQueue (but crashes for now)
@@ -37,20 +38,20 @@ Type TZConnection
 		Return Self._socket.Connected()
 	EndMethod
 	
-	Method QueuePacket(packet:TZPacket)
+	Method QueuePacket(packet:TNetworkPacket)
 		Self._sendQueue.AddLast(packet)
 	EndMethod
 	
-	Method SetPacketFunctionPointer(func:TZPacket(packet:TZPacket))
+	Method SetPacketFunctionPointer(func:TNetworkPacket(packet:TNetworkPacket))
 		
 		Self._packetFuncPointer = func
 	EndMethod
 	
-	Method _triggerPacketFuncPointer(packet:TZPacket)
+	Method _triggerPacketFuncPointer(packet:TNetworkPacket)
 		
 		' Call the packet function pointer
 		' Anything returned will be queued
-		Local returnPacket:TZPacket = ..
+		Local returnPacket:TNetworkPacket = ..
 			Self._packetFuncPointer(packet)
 		
 		' Did we get a return packet?
@@ -66,7 +67,7 @@ Type TZConnection
 	Method _receiveAndSendData()
 		
 		' Send packets in the queue
-		Local packet:TZPacket
+		Local packet:TNetworkPacket
 		' FIX: Send as one huge bank, not one bank per packet
 		For packet = EachIn Self._sendQueue.Reversed() ' FIX: Once it's a queue we don't need to reverse this!
 			Self._stream.WriteBytes(packet.ToBank(Self._includeFromUser), packet.Size())
@@ -92,14 +93,16 @@ Type TZConnection
 						
 						Self._identified = 1
 						
-						' Annouce via packet
-						Local joinPacket:TZPacket = New TZPacket(TZDefaultPackets.Join)
+						' Announce via packet
+						Local joinPacket:TNetworkPacket = New TNetworkPacket(TNetworkDefaultPackets.Join)
 						joinPacket.SetFromClient(Self._sessionID)
 						Self._triggerPacketFuncPointer(joinPacket)
 					Else
 						Print("Connection #" + Self._sessionID + " failed to ident!")
 						Self.Close()
 					EndIf
+				Else
+					Exit
 				EndIf
 			EndIf
 			
@@ -111,7 +114,7 @@ Type TZConnection
 					Case 0
 						If Self.ReadAvail() >= 1 Then
 							If Not Self._incomingPacket ..
-								Self._incomingPacket = New TZPacket(Byte(Self.ReadByte()))
+								Self._incomingPacket = New TNetworkPacket(Byte(Self.ReadByte()))
 							Self._incomingPacketState:+1
 						Else
 							Exit
@@ -151,7 +154,7 @@ Type TZConnection
 							
 							' Is this an internal packet?
 							If Self._incomingPacket.ID() <= 250 Then
-								'Self._triggerPacketFuncPointer(Self._incomingPacket)
+								Self._triggerPacketFuncPointer(Self._incomingPacket)
 							Else
 								'Self._internalPacket(Self._incomingPacket)
 							EndIf

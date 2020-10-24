@@ -1,12 +1,12 @@
 SuperStrict
 
 Framework brl.standardio
-Import "../znet.bmx"
+Import hez.network
 
 ' Packet definer
 Import "mypackets.bmx"
 
-Local server:TZServer = New TZServer(onNetPacket)
+Local server:TNetworkServer = New TNetworkServer(OnNetPacket)
 
 ' Start the server
 ' Use port 2472
@@ -24,13 +24,14 @@ End
 
 ' Our packet handler
 ' Any client message will pass through here
-Function onNetPacket:TZPacket(packet:TZPacket)
+Function OnNetPacket:TNetworkPacket(packet:TNetworkPacket)
+	Print "Got Packet #" + packet.ID(	)
 	
 	Select packet.ID()
-		Case TZDefaultPackets.Join
+		Case TNetworkDefaultPackets.Join
 			Print("#" + packet.FromClient() + " joined")
 		
-		Case TZDefaultPackets.Left
+		Case TNetworkDefaultPackets.Left
 			Print("#" + packet.fromClient + " left")
 		
 		Case TMyPackets.Hello

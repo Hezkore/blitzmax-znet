@@ -1,18 +1,23 @@
 SuperStrict
 
 Framework brl.standardio
-Import "../znet.bmx"
+Import hez.network
 
-'Packet definer
+' Packet definer
 Import "mypackets.bmx"
 
-Local client:TZClient = New TZClient(onNetPacket)
+Local client:TNetworkClient = New TNetworkClient(OnNetPacket)
 
-
+Delay(500)
 If client.connect("127.0.0.1", 2472) Then
 	
 	While client.Connected()
 		client.update()
+		
+		' Send hello
+		Local myPacket:TNetworkPacket = New TNetworkPacket(TMyPackets.Hello)
+		myPacket.WriteByte(1)
+		client.QueuePacket(myPacket)
 	Wend
 Else
 	
@@ -21,16 +26,16 @@ EndIf
 End
 
 ' Packet handler
-Function onNetPacket:TZPacket(packet:TZPacket)
+Function OnNetPacket:TNetworkPacket(packet:TNetworkPacket)
 	
 	Select packet.ID()
-		Case TZDefaultPackets.Join
+		Case TNetworkDefaultPackets.Join
 			Print("#" + packet.FromClient() + " joined")
-		
-		Case TZDefaultPackets.Left
+			
+		Case TNetworkDefaultPackets.Left
 			Print("#" + packet.fromClient + " left")
-		
+			
 		Case TMyPackets.Hello
-			Print("Hello from #" + packet.FromClient() + ": " + Packet.ReadString())
+			'Print("Hello from #" + packet.FromClient() + ": " + Packet.ReadString())
 	EndSelect
 EndFunction
